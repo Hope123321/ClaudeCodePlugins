@@ -1,9 +1,13 @@
 {
-  "name": "retex-engineer",
-  "version": "0.1.0",
-  "description": "retex-engineer skill",
-  "author": {
+  "name": "retex-claude-plugins",
+  "owner": {
     "name": "Jonathan"
   },
-  "keywords": ["retex"]
+  "plugins": [
+    {
+      "name": "senior-engineer",
+      "source": "./plugins/retex-engineer",
+      "description": "以資深工程師的方式處理日常開發與除錯，透過規劃、開發、驗證、資安檢測四個獨立 subagent 依序完成任務"
+    }
+  ]
 }
