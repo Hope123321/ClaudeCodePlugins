@@ -38,6 +38,12 @@ description: 將 .pdf、.doc、.docx、.pptx、.xlsx 等格式的規格文件，
 
 把抽出的原始文字/表格/結構存成暫存檔（放在 scratchpad，不放專案目錄），作為後面兩個 subagent 的輸入。
 
+**環境缺 pandoc/LibreOffice 時的 `.doc` 已知限制**：`anthropic-skills:docx` 處理舊版 `.doc`（OLE 複合檔案格式）的標準做法是用 `pandoc` 或 `soffice` 轉出內容；若環境沒裝這兩者，會退而求其次改用 Microsoft Word 的 COM 自動化。這條路上有個已知陷阱：先用 `SaveAs`/`SaveAs2` 把 `.doc` 另存成 `.docx`、再走一般 docx 解析流程，這個 `SaveAs` 呼叫在部分機器上會**永久卡住不回傳**——原因是 Word 在存檔時可能跳出模態對話框（相容性檢查、格式確認、連結物件更新、巨集安全性警告），COM 自動化通常把 Word 開成不可見視窗，沒有人能點掉這個對話框，呼叫就永遠卡住。
+
+遇到這個情境時：
+- **不要把「先轉 docx 再解析」當必經路徑**：既然最終要的只是段落文字、樣式、表格內容，可以直接對 `Documents.Open` 開啟的文件物件用 COM 逐段落讀取（`Paragraphs`/`Tables`/`Range.Style`），寫成暫存純文字檔即可，不必先存成 `.docx` 中間格式。
+- 若仍需要 `SaveAs`（例如要保留原生表格 XML 結構），開檔與存檔前先設定 `DisplayAlerts = 0`（`wdAlertsNone`）、`Documents.Open(..., ConfirmConversions:=False, ReadOnly:=True)`、`Options.UpdateLinksAtOpen = False`，可擋掉大部分會跳對話框的來源；並幫這次呼叫包一層時限（timeout），超時就強制關閉 `WINWORD.EXE` 行程再降級成上一點的直接讀取法，避免整個轉檔流程卡死。
+
 ### 步驟 1：規劃（強制使用 `doc-to-markdown-planner`，模型 opus）
 
 呼叫 `doc-to-markdown-planner` subagent，在 prompt 裡提供：

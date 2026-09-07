@@ -2,6 +2,11 @@
 
 本文件記錄 `retex-engineer` plugin 的版本異動，供後續維護參考。版號對應 `.claude-plugin/plugin.json` 的 `version` 欄位。
 
+## 1.1.8
+
+- `doc-to-markdown` skill 步驟 0 補上「環境缺 pandoc/LibreOffice 時的 `.doc` 已知限制」說明：記錄 Word COM 自動化改用 `SaveAs`/`SaveAs2` 轉存 `.docx` 時可能因模態對話框（相容性檢查、連結物件更新、巨集警告）在不可見視窗下永久卡住的成因，並給出兩個因應做法——優先直接對已開啟的 Document 物件逐段落讀取，不必先轉存 `.docx`；若仍需 `SaveAs`，先關閉 `DisplayAlerts`/`ConfirmConversions`/`UpdateLinksAtOpen` 等提示來源，並包一層 timeout 於超時後強制關閉 `WINWORD.EXE` 再降級。
+- 起因：實際轉換舊版 `.doc` 時遇到 `SaveAs` 卡死不回傳，排查後確認是 Word COM 自動化的已知通病，記錄下來避免下次重新排查。
+
 ## 1.1.7
 
 - `doc-to-markdown` skill 調整為「只轉跟這次開發需求有關的部分」：動手前須先取得明確的開發需求描述，沒有就先問使用者，不再整份文件照單全收。
